@@ -47,6 +47,15 @@ class PrintingValidator:
         for p in page_order:
             pass
 
+    def get_middle_page(self, page_order):
+        pages_after = self.relevant_rules(page_order)
+        middle_page_has_after = len(page_order)//2
+        for page in pages_after:
+            if len(pages_after[page]) == middle_page_has_after:
+                return page
+        assert False, f"Did not find middle page for {page_order}"
+
+
     def relevant_rules(self, page_order):
         rules = defaultdict(set)
         for l in self.link:
@@ -79,10 +88,9 @@ with open('input') as input:
         page_order = [int(n) for n in l.strip().split(',')]
         assert len(page_order) % 2 == 1, f"Bad page-order length {page_order}"
         if not validator.validate_page_order(page_order):
-            print(page_order)
-            print(validator.relevant_rules(page_order))
-            sys.exit(0)
-            result += page_order[len(page_order) // 2]
+            middle_page = validator.get_middle_page(page_order)
+            print(f"Middle page is {middle_page} in {page_order}")
+            result += middle_page
 
     print(f"Sum of the middle page of fixed print orders: {result}")
 
