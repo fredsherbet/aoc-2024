@@ -24,6 +24,15 @@ class Map():
              'v': (1, 0),
              '>': (0, 1),
              '<': (0, -1)}[d]
+        ny, nx = ([r+v for r,v in zip(self.robot, v)])
+        if (ny, nx) not in self.boxes:
+            self.robot = (ny, nx)
+            return
+
+        # Moving boxes!
+        oy, ox = ny, nx
+        while oy > 0
+
         #TODO
 
     def gps(self, b):
