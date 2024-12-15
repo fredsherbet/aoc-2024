@@ -3,21 +3,23 @@
 class Map():
     def __init__(self):
         self.m = []
-        self.height = -1
+        self.height = 0
         self.width = -1
         self.robot = None
         self.boxes = set()
+        self.wall = set()
 
     def append(self, row):
         self.width = len(row)
-        self.height += 1
         self.m.append(row)
-        c = row.find('@')
-        if c >= 0:
-            self.robot = (self.height, c)
         for (c, ch) in enumerate(row):
             if ch == 'O':
                 self.boxes.add((self.height, c))
+            elif ch == '#':
+                self.wall.add((self.height, c))
+            elif ch == '@':
+                self.robot = (self.height, c)
+        self.height += 1
 
     def move_robot(self, d):
         v = {'^': (-1, 0),
@@ -25,32 +27,33 @@ class Map():
              '>': (0, 1),
              '<': (0, -1)}[d]
         ny, nx = self.step(self.robot, v)
-        if self.in_bounds(ny, nx) and (ny, nx) not in self.boxes:
+        if (ny, nx) in self.wall:
+            return
+        if (ny, nx) not in self.boxes:
+            # Nothing in the way; robot moves
             self.robot = (ny, nx)
             return
 
-        # Moving boxes!
-        oy, ox = ny, nx
-        while self.in_bounds(oy, ox):
-            oy, ox = self.step((oy, ox), v)
-            if self.in_bounds(oy, ox) and (oy, ox) not in self.boxes:
+        # Pushing into a box
+        by, bx = ny, nx
+        while True:
+            by, bx = self.step((by, bx), v)
+            if (by, bx) in self.wall:
+                # Hit a wall; nothing can move
+                return
+            if (by, bx) not in self.boxes:
+                # Found a space for the boxes to move into
                 self.robot = (ny, nx)
                 self.boxes.remove(self.robot)
-                self.boxes.add((oy, ox))
+                self.boxes.add((by, bx))
                 return
-
-        # Cannot move boxes; nothing moves
-        return
 
     def step(self, p, v):
         return ([c+d for c,d in zip(p, v)])
 
-    def in_bounds(self, y, x):
-        return y > 0 and y < self.height-1 and x > 0 and x < self.width-1
-
     def gps(self, b):
         y, x = b
-        return (y*100 * x)
+        return (y*100 + x)
 
     def print(self):
         for y in range(self.height):
@@ -59,6 +62,8 @@ class Map():
                     print('@', end="")
                 elif (y, x) in self.boxes:
                     print('O', end="")
+                elif (y, x) in self.wall:
+                    print('#', end="")
                 else:
                     print('.', end="")
             print()
@@ -77,6 +82,8 @@ with open('input') as input:
         map.append(l)
 
     instructions = "".join(l.strip() for l in input)
+
+map.print()
 
 for i in instructions:
     map.move_robot(i)
