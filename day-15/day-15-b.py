@@ -44,8 +44,8 @@ class Map():
             return
 
         # No wall is blocking any of the boxes, so they all move
-        for b in boxes_in_path:
-            self.move_box(b, v)
+        self.robot = (ny, nx)
+        self.move_boxes(boxes_in_path, v)
 
     def get_box(self, coords):
         if coords in self.boxes:
@@ -54,7 +54,7 @@ class Map():
             return (coords[0], coords[1]-1)
 
     def boxes_in_path(self, coords, v):
-        print(f"boxes_in_path({coords}, {v})")
+        #print(f"boxes_in_path({coords}, {v})")
         b = self.get_box(coords)
         yield self.get_box(b)
         seen = set()
@@ -79,19 +79,24 @@ class Map():
                 if b in self.boxes:
                     yield b
                 elif b in self.wall:
+                    # Hit a wall; no more boxes
                     break
-
+                else:
+                    # Hit a space; no more boxes
+                    break
 
     def box_coords(self, b):
         yield b
         yield (b[0], b[1]+1)
 
     def box_cannot_move(self, b, v):
-        return any(c in self.wall for c in self.box_coords(b))
+        return any(self.step(c, v) in self.wall for c in self.box_coords(b))
 
-    def move_box(self, b, v):
-        self.boxes.remove(b)
-        self.boxes.add(self.step(b, v))
+    def move_boxes(self, boxes, v):
+        for b in boxes:
+            self.boxes.remove(b)
+        for b in boxes:
+            self.boxes.add(self.step(b, v))
 
     def step(self, p, v):
         return tuple(c+d for c,d in zip(p, v))
@@ -131,9 +136,10 @@ with open('input') as input:
 
     instructions = "".join(l.strip() for l in input)
 
-map.print()
 
 for i in instructions:
+    #map.print()
+    #print(i)
     map.move_robot(i)
 
 map.print()
