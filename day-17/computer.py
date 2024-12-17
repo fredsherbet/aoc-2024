@@ -14,6 +14,7 @@ class Computer:
         opcode = self.program[self.i_ix]
         operand = self.program[self.i_ix+1]
         self.i_ix += 2
+
         if self.is_combo(opcode):
             operand = self.combo(operand)
 
@@ -63,7 +64,7 @@ class Computer:
         return val % 8
 
     def is_combo(self, opcode):
-        return opcode in [0, 2, 5]
+        return opcode in [0, 2, 5, 6, 7]
 
     def combo(self, operand):
         if operand <= 3:
