@@ -2,8 +2,8 @@ from collections import deque
 
 class Map:
     def __init__(self):
-        self.width = 7
-        self.height = 7
+        self.width = 71
+        self.height = 71
         self.blocks = set()
         self.steps = None
 
@@ -48,7 +48,7 @@ class Map:
     def print(self):
         for row in self.steps:
             for s in row:
-                print(f"{s if s <99999 else '##':2} ", end="")
+                print(f"{s if s <99999 else '###':3} ", end="")
             print()
         print()
 
@@ -60,10 +60,10 @@ with open('input') as input:
         x, y = l.strip().split(',')
         map.add_block(int(y), int(x))
         count += 1
-        if count >= 12:
+        if count >= 1024:
             break
 
-shortest_route = map.shortest_route(0,0, 6,6)
+shortest_route = map.shortest_route(0,0, 70,70)
 map.print()
 print(shortest_route)
 
