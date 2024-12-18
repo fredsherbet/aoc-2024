@@ -31,7 +31,7 @@ class Computer:
             self.b = self.st(operand)
         elif opcode == 3:
             # jnz
-            print(f"JNZ {self.a}, {operand}")
+            #print(f"JNZ {self.a}, {operand}")
             self.jnz(self.a, operand)
         elif opcode == 4:
             # bxc
