@@ -1,19 +1,24 @@
 from computer import Computer
 from input import prog
 
+def run_computer(c):
+    out = []
+    while not c.is_halted():
+        v = c.execute_instruction()
+        if v is not None:
+            out.append(v)
+    return out
+
+
 def find_cands(cands, want):
     next_cands = []
     for cand in cands:
         for a in range(4096):
             a = cand*8**4 + a
             c = Computer(a, 0, 0, prog)
-            out = []
-            while not c.is_halted():
-                v = c.execute_instruction()
-                if v is not None:
-                    out.append(v)
+            out = run_computer(c)
             if out == want:
-                print(f"{a}\t {','.join(str(o) for o in out)}")
+                print(f"{a}\t{oct(a)}\t{','.join(str(o) for o in out)}")
                 next_cands.append(a)
     return next_cands
 
