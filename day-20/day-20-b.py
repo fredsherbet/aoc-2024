@@ -12,7 +12,7 @@ class Map:
     def find_shortcuts(self):
         #print(f"Find shortcuts landing at {self.p}")
         q = deque()
-        cheats_allowed = 2
+        cheats_allowed = 20
         q.extend((l, cheats_allowed-1) for l in self.next_to(self.p) if self.at(l) == '#')
         visited = {self.p: cheats_allowed}
         shortcuts_from = set()
@@ -24,8 +24,8 @@ class Map:
                 # Already explored better routes from here
                 continue
             visited[l] = available_steps
+            q.extend((c, available_steps-1) for c in self.next_to(l))
             if self.at(l) == '#':
-                q.extend((c, available_steps-1) for c in self.next_to(l))
                 continue
             if self.at(l) == '.':
                 # This is a place we've not stepped to; we'll find this
@@ -52,16 +52,12 @@ class Map:
                     print(f"{self.map[y][x]:2}    |", end="")
             print()
 
-
-
     def next_to(self, p):
-        for d in [(1,0), (-1,0), (0,1), (0,-1)]:
-            y = p[0] + d[0]
-            x = p[1] + d[1]
-            #if 0 >= y or y >= len(self.map)-1 or 0 >= x or x >= len(self.map[0])-1:
-            if 0 > y or y >= len(self.map) or 0 > x or x >= len(self.map[0]):
-                continue
-            yield (y,x)
+        y, x = p
+        if y > 1: yield (y-1,x)
+        if y < len(self.map)-2: yield (y+1,x)
+        if x > 1: yield (y,x-1)
+        if x < len(self.map[0])-2: yield (y,x+1)
 
     def at(self, p):
         return self.map[p[0]][p[1]]
