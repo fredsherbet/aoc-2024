@@ -1,3 +1,5 @@
+from collections import deque
+from itertools import product
 
 # Be careful! I need to work out the sequence to type the door code.
 # I don't really need pads that I control; I want pads that tell me the sequence
@@ -10,45 +12,49 @@ class Pad:
         self.y, self.x = starting_pos
         self.banned = banned
 
-    def up(self):
-        self.y -= 1
-        assert self.y >= 0
+    def press(self, y, x, from_y, from_x):
+        sequences = []
+        q = deque()
+        q.append((from_y, from_x, ""))
+        while q:
+            r, c, seq = q.popleft()
+            #print(f"Try from {r},{c}; so far: {seq}")
+            assert len(seq) < 9
+            if (r,c) == (y,x):
+                #print(f"Found {seq}")
+                sequences.append(seq + 'A')
+                continue
+            if (r,c) == self.banned:
+                continue
+            #if r == y:
+            #    while c < x:
+            #        c += 1
+            #        seq += '>'
+            #    while c > x:
+            #        c -= 1
+            #        seq += '<'
+            #    sequences.append(seq)
+            #    continue
+            #if c == x:
+            #    while r < y:
+            #        r += 1
+            #        seq += 'v'
+            #    while r > y:
+            #        r -= 1
+            #        seq += '^'
+            #    sequences.append(seq)
+            #    continue
+            if r > y:
+                q.append((r-1, c, seq + '^'))
+            if r < y:
+                q.append((r+1, c, seq + 'v'))
+            if c > x:
+                q.append((r, c-1, seq + '<'))
+            if c < x:
+                q.append((r, c+1, seq + '>'))
 
-    def down(self):
-        self.y += 1
-
-    def left(self):
-        self.x -= 1
-        assert self.x >= 0
-
-    def right(self):
-        self.x += 1
-
-    def press(self, y, x):
-        commands = []
-        if x == self.banned[1] and self.y == self.banned[0] :
-            # We're going to the col with the banned space;
-            # line up on the right row first to avoid it.
-            while self.y < y:
-                commands.append('v')
-                self.y += 1
-            while self.y > y:
-                commands.append('^')
-                self.y -= 1
-        while x < self.x:
-            commands.append('<')
-            self.x -= 1
-        while x > self.x:
-            commands.append('>')
-            self.x += 1
-        while self.y > y:
-            commands.append('^')
-            self.y -= 1
-        while self.y < y:
-            commands.append('v')
-            self.y += 1
-        commands.append('A')
-        return commands
+        #print(f"Found all sequences to press {y},{x}: {sequences}")
+        return sequences
 
 
 class DoorPad(Pad):
@@ -68,9 +74,10 @@ class DoorPad(Pad):
                 'A': (3, 2)
             }
 
-    def press(self, val):
+    def press(self, val, from_val):
         y, x = self.map[val]
-        return Pad.press(self, y, x)
+        from_y, from_x = self.map[from_val]
+        return Pad.press(self, y, x, from_y, from_x)
 
 class DirPad(Pad):
     def __init__(self):
@@ -85,48 +92,48 @@ class DirPad(Pad):
 
     def press(self, val):
         y, x = self.map[val]
-        return Pad.press(self, y, x)
+        s = Pad.press(self, y, x, self.pos[0], self.pos[1])
+        self.pos = self.map[val]
+        return s
+
+    def seq(self, s):
+        self.pos = self.map['A']
+        sequences = [self.press(b) for b in s]
+        #print(f"Pressing seq {s}; found {sequences}")
+        #print(f"{','.join(str(s) for s in product(*sequences))}")
+        for s in product(*sequences):
+            yield "".join(b for b in s)
 
 
 # Load up Door codes
 with open('input') as input:
     door_codes = [l.strip() for l in input]
 
-# Calculate codes for first directional pad to control door robot
+
 door = DoorPad()
-dir_codes = []
-for c in door_codes:
-    dir_codes.append("".join("".join(door.press(v)) for v in c))
-
-print("Dir codes")
-for c,d in zip(door_codes, dir_codes):
-    print(f"{c}: {d}")
-
-# Calculate codes for second directional pad to control robot in high levels of radiation
-dir = DirPad()
-dir2_codes = []
-for d in dir_codes:
-    dir2_codes.append("".join("".join(dir.press(v)) for ins in d for v in ins))
-
-print("Second layer of directional codes")
-for c,d in zip(door_codes, dir2_codes):
-    print(f"{c}: {d}")
-
-# Calculate codes for third directional pad (controlled by a human), to control the robot that's cold
-dir2 = DirPad()
-dir3_codes = []
-for d in dir2_codes:
-    dir3_codes.append("".join("".join(dir.press(v)) for ins in d for v in ins))
-
-print("Third layer of directional codes")
-for c,d in zip(door_codes, dir3_codes):
-    print(f"{c}: {d}")
-
-# Complexity calculations
+rad = DirPad()
+cold = DirPad()
+human = DirPad()
 complexity = 0
-for c,d in zip(door_codes, dir3_codes):
-    complexity += len(d) * int(c[:3])
-    print(f"+ {len(d)} {int(c[:3])}")
+for code in door_codes:
+    print(f"Calculating code {code}")
+    s = ''
+    last = 'A'
+    for c in code:
+        best = None
+        for seq in door.press(c, last):
+            #print(f"{seq} using rad:")
+            for seq2 in rad.seq(seq):
+                #print(f"{seq2} using cold:")
+                for seq3 in cold.seq(seq):
+                    for seq4 in human.seq(seq):
+                        if best is None or len(best) > len(seq4):
+                            #print(f"Found {best}")
+                            best = seq4
+            last = c
+        s += best
+    print(f"{s}: {len(s)} * {int(code[:3])}")
+    complexity += len(s) * int(code[:3])
 
 print(complexity)
 
