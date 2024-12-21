@@ -125,11 +125,10 @@ for code in door_codes:
             #print(f"{seq} using rad:")
             for seq2 in rad.seq(seq):
                 #print(f"{seq2} using cold:")
-                for seq3 in cold.seq(seq):
-                    for seq4 in human.seq(seq):
-                        if best is None or len(best) > len(seq4):
-                            #print(f"Found {best}")
-                            best = seq4
+                for seq3 in cold.seq(seq2):
+                    if best is None or len(best) > len(seq3):
+                        #print(f"Found {best}")
+                        best = seq3
             last = c
         s += best
     print(f"{s}: {len(s)} * {int(code[:3])}")
