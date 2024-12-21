@@ -6,8 +6,9 @@
 # E.g. door pad - I ask it to press "5", and it spits out the sequence of insttructions it'll need
 
 class Pad:
-    def __init__(self, starting_pos):
+    def __init__(self, starting_pos, banned):
         self.y, self.x = starting_pos
+        self.banned = banned
 
     def up(self):
         self.y -= 1
@@ -25,6 +26,15 @@ class Pad:
 
     def press(self, y, x):
         commands = []
+        if x == self.banned[1]:
+            # We're going to the col with the banned space;
+            # line up on the right row first to avoid it.
+            while self.y > y:
+                commands.append('^')
+                self.y -= 1
+            while self.y < y:
+                commands.append('v')
+                self.y += 1
         while x > self.x:
             commands.append('>')
             self.x += 1
@@ -43,7 +53,7 @@ class Pad:
 
 class DoorPad(Pad):
     def __init__(self):
-        Pad.__init__(self, (3, 2))
+        Pad.__init__(self, (3,2), (3,0))
         self.map = {
                 '7': (0, 0),
                 '8': (0, 1),
@@ -64,7 +74,7 @@ class DoorPad(Pad):
 
 class DirPad(Pad):
     def __init__(self):
-        Pad.__init__(self, (0, 2))
+        Pad.__init__(self, (0,2), (0,0))
         self.map = {
                 '^': (0, 1),
                 'A': (0, 2),
