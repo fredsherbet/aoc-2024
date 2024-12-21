@@ -26,21 +26,21 @@ class Pad:
 
     def press(self, y, x):
         commands = []
-        if x == self.banned[1]:
+        if x == self.banned[1] and self.y == self.banned[0] :
             # We're going to the col with the banned space;
             # line up on the right row first to avoid it.
-            while self.y > y:
-                commands.append('^')
-                self.y -= 1
             while self.y < y:
                 commands.append('v')
                 self.y += 1
-        while x > self.x:
-            commands.append('>')
-            self.x += 1
+            while self.y > y:
+                commands.append('^')
+                self.y -= 1
         while x < self.x:
             commands.append('<')
             self.x -= 1
+        while x > self.x:
+            commands.append('>')
+            self.x += 1
         while self.y > y:
             commands.append('^')
             self.y -= 1
