@@ -102,6 +102,7 @@ print("Second layer of directional codes")
 for c,d in zip(door_codes, dir2_codes):
     print(f"{c}: {d}")
 
+# Calculate codes for third directional pad (controlled by a human), to control the robot that's cold
 dir2 = DirPad()
 dir3_codes = []
 for d in dir2_codes:
@@ -110,3 +111,12 @@ for d in dir2_codes:
 print("Third layer of directional codes")
 for c,d in zip(door_codes, dir3_codes):
     print(f"{c}: {d}")
+
+# Complexity calculations
+complexity = 0
+for c,d in zip(door_codes, dir3_codes):
+    complexity += len(d) * int(c[:3])
+    print(f"+ {len(d)} {int(c[:3])}")
+
+print(complexity)
+
