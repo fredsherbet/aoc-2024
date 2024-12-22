@@ -11,37 +11,28 @@ class Map:
 
     def find_shortcuts(self):
         #print(f"Find shortcuts landing at {self.p}")
-        q = deque()
-        cheats_allowed = 20
-        q.extend((l, cheats_allowed-1) for l in self.next_to(self.p) if self.at(l) == '#')
-        visited = {self.p: cheats_allowed}
-        shortcuts_from = set()
-        while q:
-            l, available_steps = q.popleft()
-            if available_steps < 0:
-                continue
-            if l in visited and visited[l] > available_steps:
-                # Already explored better routes from here
-                continue
-            visited[l] = available_steps
-            q.extend((c, available_steps-1) for c in self.next_to(l))
-            if self.at(l) == '#':
-                continue
-            if self.at(l) == '.':
-                # This is a place we've not stepped to; we'll find this
-                # shortcut when we step here, and look back.
-                continue
-            shortcuts_from.add(l)
+        # We can shortcut to self.p from anywhere that's on the route we've
+        # been so far, and is within a radius of 20 steps
+        for l,d in self.within(20):
+            if self.at(l) not in ['#', '.']:
+                saving = self.at(self.p) - self.at(l) - d
+                if saving > 0:
+                    yield saving
 
-        #self.print({})
-        #self.print(visited)
-        #print()
-        #sys.exit(0)
-        for l in shortcuts_from:
-            saving = self.at(self.p) - self.at(l) - (cheats_allowed-visited[l])
-            if saving > 0:
-                #print(f"Found Shortcut from {l}({self.at(l)}) to {self.p}({self.at(self.p)}) saves {saving}")
-                yield saving
+    def within(self, steps):
+        seen = set()
+        q = deque()
+        q.extend((l, 1) for l in self.next_to(self.p))
+        while q:
+            l, d = q.popleft()
+            if d > steps:
+                continue
+            if l in seen:
+                continue
+            seen.add(l)
+            yield (l, d)
+            q.extend((l, d+1) for l in self.next_to(l))
+
 
     def print(self, overrides):
         for y in range(len(self.map)):
